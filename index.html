@@ -279,8 +279,11 @@
     .check-label {display:flex;align-items:flex-start;font-size:13px;line-height:1.5}
     .hero-kicker {color:#ECC203;font-size:13px}
     .helper-text {font-size:12px;}
-    #successMessage {display:none;}
+    #successMessage {display:none;text-align:left;background:#EAF8F5;border:1px solid #B6E7D9;color:#092040;padding:26px;}
     #successMessage.show {display:block;}
+    #successMessage .success-heading {font-family:Montserrat,sans-serif;font-size:21px;font-weight:700;margin-bottom:14px;color:#075C53;}
+    #successMessage p {margin:0 0 12px;line-height:1.65;}
+    #successMessage .success-protocol {font-size:12px;color:#45556C;margin-bottom:0;word-break:break-word;}
     input[readonly] {background:#EFF1F3;color:#374151;}
     a {color:#007B92;}
     @media (max-width:768px) {.header {padding:24px 16px;}main{margin:12px;padding:22px 16px;} }
@@ -296,7 +299,13 @@
 <p>Formulário de diagnóstico para empreendedores atendidos em Goiás e no Rio Grande do Sul.</p>
 </div>
 <main>
-<div class="success-message" id="successMessage">✅ Registro confirmado na planilha. Anote o protocolo exibido abaixo.</div>
+<div class="success-message" id="successMessage" role="status" aria-live="polite" tabindex="-1">
+  <div class="success-heading">✓ Diagnóstico enviado com sucesso!</div>
+  <p>Seu diagnóstico empresarial foi recebido com sucesso.</p>
+  <p>Em breve, um consultor da equipe Prospera entrará em contato com você para apresentar e entregar seu relatório de diagnóstico e dar continuidade ao atendimento com a realização da consultoria.</p>
+  <p>Agradecemos sua participação!</p>
+  <p class="success-protocol">Protocolo: <span id="protocoloConfirmado"></span></p>
+</div>
 <form id="formulario">
 <div class="form-section">
 <h2>Informações Básicas</h2><div class="form-group" id="grupo_projeto"><label for="projeto">Estado do negócio <span class="required">*</span></label><select id="projeto" name="projeto" required=""><option value="">Selecione o estado do atendimento</option><option value="GO">Prospera Goiás (GO)</option><option value="RS">Prospera Rio Grande do Sul (RS)</option></select><div class="helper-text">O registro será direcionado automaticamente à aba do estado escolhido.</div></div>
@@ -688,7 +697,7 @@
 </div>
 </div>
 <div class="form-section"><h2>Confirmação do empreendedor</h2>
-<div class="form-group"><p>As respostas serão registradas na planilha do programa estadual selecionado e utilizadas para análise do diagnóstico empresarial. Seus dados pessoais não devem ser publicados junto com o formulário.</p></div>
+<div class="form-group"><p>As informações fornecidas serão utilizadas pela equipe do projeto para elaborar seu diagnóstico empresarial e organizar o atendimento de consultoria.</p></div>
 <div class="form-group"><label class="check-label"><input id="confirmacao" required="" style="width:auto;margin-right:8px" type="checkbox"/>Confirmo que os dados fornecidos são verdadeiros e que li a finalidade informada acima.</label></div>
 <div class="form-group"><p aria-live="polite" class="status-text" id="statusEnvio" role="status"></p></div></div><button id="submitBtn" type="submit">Enviar Formulário</button>
 </div></form>
