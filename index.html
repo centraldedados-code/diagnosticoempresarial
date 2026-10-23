@@ -305,6 +305,7 @@
   <p>Em breve, um consultor da equipe Prospera entrará em contato com você para apresentar e entregar seu relatório de diagnóstico e dar continuidade ao atendimento com a realização da consultoria.</p>
   <p>Agradecemos sua participação!</p>
   <p class="success-protocol">Protocolo: <span id="protocoloConfirmado"></span></p>
+<button type="button" id="novoDiagnostico" style="margin-top:16px;background:#092040;color:white;border:0;border-radius:7px;padding:12px 18px;font-weight:700;cursor:pointer">Preencher outro diagnóstico</button>
 </div>
 <form id="formulario">
 <div class="form-section">
@@ -698,11 +699,219 @@
 </div>
 <div class="form-section"><h2>Confirmação do empreendedor</h2>
 <div class="form-group"><p>As informações fornecidas serão utilizadas pela equipe do projeto para elaborar seu diagnóstico empresarial e organizar o atendimento de consultoria.</p></div>
-<div class="form-group"><label class="check-label"><input id="confirmacao" required="" style="width:auto;margin-right:8px" type="checkbox"/>Confirmo que os dados fornecidos são verdadeiros e que li a finalidade informada acima.</label></div>
+<div class="form-group"><label class="check-label"><input id="confirmacao" name="confirmacao" value="sim" required="" style="width:auto;margin-right:8px" type="checkbox"/>Confirmo que os dados fornecidos são verdadeiros e que li a finalidade informada acima.</label></div>
 <div class="form-group"><p aria-live="polite" class="status-text" id="statusEnvio" role="status"></p></div></div><button id="submitBtn" type="submit">Enviar Formulário</button>
 </div></form>
 </main>
 <footer class="footer">© 2026 • Diagnóstico Empresarial • Prospera Goiás e Prospera Rio Grande do Sul</footer>
 
-<script defer="True" src="app.js"></script></body>
+<script>
+/* Diagnóstico público Prospera Goiás / Rio Grande do Sul — GitHub Pages. */
+const form = document.getElementById('formulario');
+const btn = document.getElementById('submitBtn');
+const statusEl = document.getElementById('statusEnvio');
+const sucesso = document.getElementById('successMessage');
+const el = id => document.getElementById(id);
+// Mantém o mesmo protocolo se a página for recarregada após uma queda de conexão.
+const CHAVE_PENDENTE = 'prospera_go_rs_protocolo_pendente_v1';
+function lerPendente() { try {return sessionStorage.getItem(CHAVE_PENDENTE);} catch(_) {return null;} }
+function gravarPendente(id) { try {sessionStorage.setItem(CHAVE_PENDENTE,id);} catch(_) {} }
+function limparPendente() { try {sessionStorage.removeItem(CHAVE_PENDENTE);} catch(_) {} }
+let ultimoIdPendente = lerPendente();
+
+function somenteDigitos(v){ return String(v||'').replace(/\D/g,''); }
+function addZeros(x){return String(x).padStart(2,'0');}
+function horarioAgora(){const d=new Date();return addZeros(d.getHours())+':'+addZeros(d.getMinutes());}
+function dataHoje(){const d=new Date();return d.getFullYear()+'-'+addZeros(d.getMonth()+1)+'-'+addZeros(d.getDate());}
+function mudarObrigatorio(grupoId,ativo){
+ const grupo=el(grupoId);if(!grupo)return;
+ grupo.style.display=ativo?'block':'none';
+ grupo.querySelectorAll('input,select,textarea').forEach(c=>{c.required=ativo;if(!ativo)c.value='';});
+}
+function condicaoDetalhes(){
+ mudarObrigatorio('grupo_dificuldade_2',el('dificuldade').value==='Sim');
+ mudarObrigatorio('grupo_curso_detalhe',el('curso').value==='Sim');
+}
+function alternarDocumento(){
+ const tipo=form.querySelector('input[name="tipo_documento"]:checked')?.value;
+ mudarObrigatorio('grupo_cpf',tipo==='cpf');
+ mudarObrigatorio('grupo_cnpj',tipo==='cnpj');
+}
+function estadoAtual(){return el('projeto').value;}
+async function carregarMunicipios(){
+ const uf=estadoAtual();el('uf').value=uf;el('municipio').value='';el('bairro').value='';
+ el('listaMunicipios').innerHTML='';el('listaBairros').innerHTML='';
+ if(!uf)return;
+ statusEl.textContent='Carregando sugestões de municípios do IBGE...';
+ try {
+  const r=await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados/'+uf+'/municipios?orderBy=nome');
+  if(!r.ok)throw Error('Falha no serviço do IBGE');
+  const itens=await r.json();
+  if(uf!==estadoAtual())return;
+  el('listaMunicipios').replaceChildren(...itens.map(item=>{
+   const o=document.createElement('option');o.value=item.nome;return o;
+  }));
+  statusEl.textContent='Selecione ou digite o município. O bairro pode ser preenchido pelo CEP.';
+ }catch(ex){statusEl.textContent='A lista de municípios está indisponível. Digite o município manualmente.';}
+}
+async function buscarCEP(){
+ const cep=somenteDigitos(el('cep').value);
+ if(cep.length!==8)return;
+ try {
+  const r=await fetch('https://viacep.com.br/ws/'+cep+'/json/');
+  const d=await r.json();
+  if(d.erro)return;
+  if(!estadoAtual()){statusEl.textContent='Selecione o estado antes de consultar o CEP.';return;}
+  if(d.uf!==estadoAtual()){
+   statusEl.textContent='Atenção: o CEP corresponde a '+d.uf+', diferente do estado selecionado. Confira o endereço.';
+   el('cep').setCustomValidity('O CEP não corresponde ao estado escolhido.');return;
+  }
+  el('cep').setCustomValidity('');
+  if(d.localidade)el('municipio').value=d.localidade;
+  if(d.bairro){el('bairro').value=d.bairro;const opt=document.createElement('option');opt.value=d.bairro;el('listaBairros').replaceChildren(opt);}
+  if(d.logradouro && !el('logradouro').value)el('logradouro').value=d.logradouro;
+  if(d.ddd && !el('ddd').value)el('ddd').value=d.ddd;
+  statusEl.textContent='Endereço sugerido pelo CEP. Confira todos os dados antes do envio.';
+ }catch(ex){statusEl.textContent='CEP não consultado. Preencha o endereço manualmente.';}
+}
+function validarCPF(valor){
+ const s=somenteDigitos(valor);if(s.length!==11||/^(\d)\1+$/.test(s))return false;
+ for(let tamanho=9;tamanho<=10;tamanho++){
+  let soma=0;for(let i=0;i<tamanho;i++)soma+=Number(s[i])*(tamanho+1-i);
+  const dv=(soma*10)%11; if(Number(s[tamanho])!==(dv===10?0:dv))return false;
+ }return true;
+}
+function validarCNPJ(valor){
+ const s=somenteDigitos(valor);if(s.length!==14||/^(\d)\1+$/.test(s))return false;
+ const dv=(parte,pesos)=>{const soma=pesos.reduce((a,p,i)=>a+Number(parte[i])*p,0);const resto=soma%11;return resto<2?0:11-resto;};
+ return Number(s[12])===dv(s.slice(0,12),[5,4,3,2,9,8,7,6,5,4,3,2]) && Number(s[13])===dv(s.slice(0,13),[6,5,4,3,2,9,8,7,6,5,4,3,2]);
+}
+function formatarCampos(){
+ el('cpf').addEventListener('input',()=>{const s=somenteDigitos(el('cpf').value).slice(0,11);el('cpf').value=s.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');});
+ el('cnpj').addEventListener('input',()=>{const s=somenteDigitos(el('cnpj').value).slice(0,14);el('cnpj').value=s.replace(/(\d{2})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1/$2').replace(/(\d{4})(\d)$/,'$1-$2');});
+ el('cep').addEventListener('input',()=>{let s=somenteDigitos(el('cep').value).slice(0,8);el('cep').value=s.replace(/(\d{5})(\d)/,'$1-$2');el('cep').setCustomValidity('');});
+ for(const id of ['ddd','telefone'])el(id).addEventListener('input',()=>{el(id).value=somenteDigitos(el(id).value).slice(0,id==='ddd'?2:9);});
+ el('cep').addEventListener('blur',buscarCEP);
+}
+function validarForm(){
+ if(!form.checkValidity()){form.reportValidity();return false;}
+ const doc=form.querySelector('input[name="tipo_documento"]:checked')?.value;
+ if(!doc){statusEl.textContent='Selecione CPF ou CNPJ.';el('tipo_cpf').focus();return false;}
+ if(doc==='cpf'&&!validarCPF(el('cpf').value)){statusEl.textContent='Confira o CPF informado.';el('cpf').focus();return false;}
+ if(doc==='cnpj'&&!validarCNPJ(el('cnpj').value)){statusEl.textContent='Confira o CNPJ informado.';el('cnpj').focus();return false;}
+ if(somenteDigitos(el('ddd').value).length!==2||![8,9].includes(somenteDigitos(el('telefone').value).length)){
+  statusEl.textContent='Informe um DDD de 2 dígitos e um telefone de 8 ou 9 dígitos.';el('telefone').focus();return false;
+ }
+ if(somenteDigitos(el('cep').value).length!==8){statusEl.textContent='Informe um CEP válido de 8 dígitos.';el('cep').focus();return false;}
+ return true;
+}
+function gerarId(){return crypto.randomUUID();}
+let envioAtivo = false;
+let envioFinalizado = false;
+
+function mostrarSucesso(id) {
+  if (envioFinalizado) return;
+  envioFinalizado = true;
+  envioAtivo = false;
+  ultimoIdPendente = null;
+  limparPendente();
+  el('protocoloConfirmado').textContent = id;
+  sucesso.classList.add('show');
+  form.style.display = 'none';
+  statusEl.textContent = '';
+  btn.disabled = false;
+  btn.textContent = 'Enviar Formulário';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function mostrarErro(id) {
+  if (envioFinalizado) return;
+  envioAtivo = false;
+  btn.disabled = false;
+  btn.textContent = 'Tentar novamente';
+  // Se houver nova tentativa, mantém o MESMO protocolo.
+  statusEl.textContent = 'Não foi possível confirmar o envio. Confira sua conexão e tente novamente com este mesmo formulário. Protocolo: ' + id;
+}
+
+function recuperarConfirmacao(id) {
+  google.script.run
+    .withSuccessHandler(existe => existe ? mostrarSucesso(id) : mostrarErro(id))
+    .withFailureHandler(() => mostrarErro(id))
+    .verificarProtocolo(id);
+}
+
+form.addEventListener('submit', ev => {
+  ev.preventDefault();
+  if (envioAtivo || envioFinalizado) return;
+  sucesso.classList.remove('show');
+  if (!el('fim').value) el('fim').value = horarioAgora();
+  if (!validarForm()) return;
+  if (!el('confirmacao').checked) {
+    el('confirmacao').focus();
+    return;
+  }
+  if (!window.google || !google.script || !google.script.run) {
+    statusEl.textContent = 'Abra o formulário pelo endereço oficial publicado no Google Apps Script.';
+    return;
+  }
+  const dados = Object.fromEntries(new FormData(form).entries());
+  const id = ultimoIdPendente || gerarId();
+  ultimoIdPendente = id;
+  gravarPendente(id);
+  dados.id_registro = id;
+  dados.uf = dados.projeto;
+  dados.localizacao = dados.municipio + ' — ' + dados.bairro;
+  dados.telefone_completo = '(' + dados.ddd + ') ' + dados.telefone;
+  envioAtivo = true;
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  statusEl.textContent = 'Registrando seu diagnóstico...';
+
+  google.script.run
+    .withSuccessHandler(resposta => {
+      if (resposta && resposta.ok && resposta.protocolo === id) {
+        mostrarSucesso(id);
+      } else {
+        recuperarConfirmacao(id);
+      }
+    })
+    .withFailureHandler(() => recuperarConfirmacao(id))
+    .salvarDiagnostico(dados);
+  // Uma resposta de rede perdida não permite concluir que o envio falhou.
+  // Consulta o mesmo protocolo após o tempo limite, sem criar novo registro.
+  setTimeout(() => {
+    if (envioAtivo && !envioFinalizado && ultimoIdPendente === id) {
+      recuperarConfirmacao(id);
+    }
+  }, 45000);
+});
+
+el('novoDiagnostico').addEventListener('click', () => {
+  envioFinalizado = false;
+  envioAtivo = false;
+  ultimoIdPendente = null;
+  limparPendente();
+  form.reset();
+  el('uf').value = '';
+  el('listaMunicipios').replaceChildren();
+  el('listaBairros').replaceChildren();
+  alternarDocumento();
+  condicaoDetalhes();
+  el('data').value = dataHoje();
+  el('inicio').value = horarioAgora();
+  el('fim').value = '';
+  form.style.display = '';
+  sucesso.classList.remove('show');
+  statusEl.textContent = '';
+  btn.disabled = false;
+  btn.textContent = 'Enviar Formulário';
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+for(const r of form.querySelectorAll('input[name="tipo_documento"]'))r.addEventListener('change',alternarDocumento);
+for(const id of ['dificuldade','curso'])el(id).addEventListener('change',condicaoDetalhes);
+el('projeto').addEventListener('change',carregarMunicipios);
+formatarCampos();alternarDocumento();condicaoDetalhes();
+el('data').value=dataHoje();el('inicio').value=horarioAgora();
+
+</script></body>
 </html>
