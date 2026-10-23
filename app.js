@@ -1,6 +1,6 @@
 
 /* Diagnóstico público Prospera Goiás / Rio Grande do Sul — GitHub Pages. */
-const GOOGLE_SCRIPT_URL = 'COLE_AQUI_A_URL_WEB_APP_EXEC';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxh3NWg4tnmhQzTg2D-p0lGlr6GXca5zwslqjKIC-druOA9TXSk_cpw6rvDsVHDI36agw/exec';
 const form = document.getElementById('formulario');
 const btn = document.getElementById('submitBtn');
 const statusEl = document.getElementById('statusEnvio');
