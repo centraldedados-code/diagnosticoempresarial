@@ -305,7 +305,6 @@
   <p>Em breve, um consultor da equipe Prospera entrará em contato com você para apresentar e entregar seu relatório de diagnóstico e dar continuidade ao atendimento com a realização da consultoria.</p>
   <p>Agradecemos sua participação!</p>
   <p class="success-protocol">Protocolo: <span id="protocoloConfirmado"></span></p>
-<button type="button" id="novoDiagnostico" style="margin-top:16px;background:#092040;color:white;border:0;border-radius:7px;padding:12px 18px;font-weight:700;cursor:pointer">Preencher outro diagnóstico</button>
 </div>
 <form id="formulario">
 <div class="form-section">
@@ -707,17 +706,13 @@
 
 <script>
 /* Diagnóstico público Prospera Goiás / Rio Grande do Sul — GitHub Pages. */
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxh3NWg4tnmhQzTg2D-p0lGlr6GXca5zwslqjKIC-druOA9TXSk_cpw6rvDsVHDI36agw/exec';
 const form = document.getElementById('formulario');
 const btn = document.getElementById('submitBtn');
 const statusEl = document.getElementById('statusEnvio');
 const sucesso = document.getElementById('successMessage');
 const el = id => document.getElementById(id);
-// Mantém o mesmo protocolo se a página for recarregada após uma queda de conexão.
-const CHAVE_PENDENTE = 'prospera_go_rs_protocolo_pendente_v1';
-function lerPendente() { try {return sessionStorage.getItem(CHAVE_PENDENTE);} catch(_) {return null;} }
-function gravarPendente(id) { try {sessionStorage.setItem(CHAVE_PENDENTE,id);} catch(_) {} }
-function limparPendente() { try {sessionStorage.removeItem(CHAVE_PENDENTE);} catch(_) {} }
-let ultimoIdPendente = lerPendente();
+let ultimoIdPendente = null;
 
 function somenteDigitos(v){ return String(v||'').replace(/\D/g,''); }
 function addZeros(x){return String(x).padStart(2,'0');}
@@ -806,106 +801,51 @@ function validarForm(){
  return true;
 }
 function gerarId(){return crypto.randomUUID();}
-let envioAtivo = false;
-let envioFinalizado = false;
-
-function mostrarSucesso(id) {
-  if (envioFinalizado) return;
-  envioFinalizado = true;
-  envioAtivo = false;
-  ultimoIdPendente = null;
-  limparPendente();
-  el('protocoloConfirmado').textContent = id;
+function checarStatusJSONP(id){
+ return new Promise(resolve=>{
+  const nome='callbackStatus_'+Math.floor(Math.random()*1e9);
+  const script=document.createElement('script');let finalizado=false;
+  function fim(valor){if(finalizado)return;finalizado=true;delete window[nome];script.remove();clearTimeout(t);resolve(valor);}
+  window[nome]=d=>fim(Boolean(d&&d.salvo));
+  script.onerror=()=>fim(false);
+  script.src=GOOGLE_SCRIPT_URL+'?acao=status&id='+encodeURIComponent(id)+'&callback='+nome+'&t='+Date.now();
+  const t=setTimeout(()=>fim(false),4500);
+  document.head.appendChild(script);
+ });
+}
+async function confirmarRegistro(id){
+ for(let tent=0;tent<5;tent++){
+  await new Promise(r=>setTimeout(r,1200*(tent+1)));
+  if(await checarStatusJSONP(id))return true;
+ }
+ return false;
+}
+form.addEventListener('submit',async ev=>{
+ ev.preventDefault();sucesso.classList.remove('show');
+ if(!el('fim').value)el('fim').value=horarioAgora();
+ if(!validarForm())return;
+ if(GOOGLE_SCRIPT_URL.includes('COLE_AQUI_')){statusEl.textContent='Configuração pendente: informe o URL /exec no app.js.';return;}
+ btn.disabled=true;btn.textContent='Enviando...';
+ const dados=Object.fromEntries(new FormData(form).entries());
+ dados.id_registro=ultimoIdPendente||gerarId();
+ ultimoIdPendente=dados.id_registro;
+ dados.uf=dados.projeto;
+ dados.localizacao=dados.municipio+' — '+dados.bairro;
+ dados.telefone_completo='('+dados.ddd+') '+dados.telefone;
+ try{
+  // Apps Script não fornece CORS para respostas de Web Apps; a confirmação independente é pela checagem JSONP somente do ID.
+  await fetch(GOOGLE_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(dados)});
+  statusEl.textContent='Verificando se o diagnóstico foi gravado na planilha...';
+  const confirmado=await confirmarRegistro(dados.id_registro);
+  if(!confirmado){statusEl.textContent='Não foi possível confirmar o recebimento neste momento. Não preencha um novo formulário. Informe este protocolo à equipe para conferência: '+dados.id_registro;return;}
+  el('protocoloConfirmado').textContent=dados.id_registro;
   sucesso.classList.add('show');
-  form.style.display = 'none';
-  statusEl.textContent = '';
-  btn.disabled = false;
-  btn.textContent = 'Enviar Formulário';
+  statusEl.textContent='';
+  ultimoIdPendente=null;form.reset();el('uf').value='';el('listaMunicipios').replaceChildren();el('listaBairros').replaceChildren();alternarDocumento();condicaoDetalhes();
+  el('data').value=dataHoje();el('inicio').value=horarioAgora();el('fim').value='';
   window.scrollTo({top:0,behavior:'smooth'});
-}
-
-function mostrarErro(id) {
-  if (envioFinalizado) return;
-  envioAtivo = false;
-  btn.disabled = false;
-  btn.textContent = 'Tentar novamente';
-  // Se houver nova tentativa, mantém o MESMO protocolo.
-  statusEl.textContent = 'Não foi possível confirmar o envio. Confira sua conexão e tente novamente com este mesmo formulário. Protocolo: ' + id;
-}
-
-function recuperarConfirmacao(id) {
-  google.script.run
-    .withSuccessHandler(existe => existe ? mostrarSucesso(id) : mostrarErro(id))
-    .withFailureHandler(() => mostrarErro(id))
-    .verificarProtocolo(id);
-}
-
-form.addEventListener('submit', ev => {
-  ev.preventDefault();
-  if (envioAtivo || envioFinalizado) return;
-  sucesso.classList.remove('show');
-  if (!el('fim').value) el('fim').value = horarioAgora();
-  if (!validarForm()) return;
-  if (!el('confirmacao').checked) {
-    el('confirmacao').focus();
-    return;
-  }
-  if (!window.google || !google.script || !google.script.run) {
-    statusEl.textContent = 'Abra o formulário pelo endereço oficial publicado no Google Apps Script.';
-    return;
-  }
-  const dados = Object.fromEntries(new FormData(form).entries());
-  const id = ultimoIdPendente || gerarId();
-  ultimoIdPendente = id;
-  gravarPendente(id);
-  dados.id_registro = id;
-  dados.uf = dados.projeto;
-  dados.localizacao = dados.municipio + ' — ' + dados.bairro;
-  dados.telefone_completo = '(' + dados.ddd + ') ' + dados.telefone;
-  envioAtivo = true;
-  btn.disabled = true;
-  btn.textContent = 'Enviando...';
-  statusEl.textContent = 'Registrando seu diagnóstico...';
-
-  google.script.run
-    .withSuccessHandler(resposta => {
-      if (resposta && resposta.ok && resposta.protocolo === id) {
-        mostrarSucesso(id);
-      } else {
-        recuperarConfirmacao(id);
-      }
-    })
-    .withFailureHandler(() => recuperarConfirmacao(id))
-    .salvarDiagnostico(dados);
-  // Uma resposta de rede perdida não permite concluir que o envio falhou.
-  // Consulta o mesmo protocolo após o tempo limite, sem criar novo registro.
-  setTimeout(() => {
-    if (envioAtivo && !envioFinalizado && ultimoIdPendente === id) {
-      recuperarConfirmacao(id);
-    }
-  }, 45000);
-});
-
-el('novoDiagnostico').addEventListener('click', () => {
-  envioFinalizado = false;
-  envioAtivo = false;
-  ultimoIdPendente = null;
-  limparPendente();
-  form.reset();
-  el('uf').value = '';
-  el('listaMunicipios').replaceChildren();
-  el('listaBairros').replaceChildren();
-  alternarDocumento();
-  condicaoDetalhes();
-  el('data').value = dataHoje();
-  el('inicio').value = horarioAgora();
-  el('fim').value = '';
-  form.style.display = '';
-  sucesso.classList.remove('show');
-  statusEl.textContent = '';
-  btn.disabled = false;
-  btn.textContent = 'Enviar Formulário';
-  window.scrollTo({top:0,behavior:'smooth'});
+ }catch(e){statusEl.textContent='Não foi possível verificar o envio agora. Não envie outro formulário; informe à equipe este protocolo para conferência: '+dados.id_registro;}
+ finally{btn.disabled=false;btn.textContent='Enviar Formulário';}
 });
 for(const r of form.querySelectorAll('input[name="tipo_documento"]'))r.addEventListener('change',alternarDocumento);
 for(const id of ['dificuldade','curso'])el(id).addEventListener('change',condicaoDetalhes);
