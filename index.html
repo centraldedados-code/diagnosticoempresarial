@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Diagnóstico Empresarial | Prospera Goiás e Rio Grande do Sul</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&amp;family=Open+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+    :root {
+      --azul-principal: #092040;
+      --azul-secundaria: #00B7D7;
+      --amarelo-acento: #ECC203;
+      --cinza-neutro: #EFF1F3;
+      --azul-escuro: #021738;
+      --branco: #FFFFFF;
+      --vermelho-erro: #ef4444;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background-color: var(--cinza-neutro);
+      color: var(--azul-escuro);
+    }
+
+    .header {
+      background: var(--azul-principal);
+      color: var(--branco);
+      padding: 30px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      height: 60px;
+      width: auto;
+    }
+
+    .location-text {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: var(--amarelo-acento);
+      text-align: center;
+    }
+
+    .header h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 30px auto;
+      background-color: var(--branco);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .form-section {
+      margin-bottom: 30px;
+      padding-bottom: 30px;
+      border-bottom: 2px solid var(--cinza-neutro);
+    }
+
+    .form-section:last-of-type {
+      border-bottom: none;
+    }
+
+    .form-section h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 20px;
+      color: var(--azul-principal);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid var(--azul-secundaria);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--azul-escuro);
+    }
+
+    label .required {
+      color: var(--vermelho-erro);
+      margin-left: 3px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      font-family: 'Open Sans', sans-serif;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      transition: border-color 0.3s;
+      background-color: var(--branco);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--azul-secundaria);
+    }
+
+    input.error, select.error, textarea.error {
+      border-color: var(--vermelho-erro);
+    }
+
+    .error-message {
+      color: var(--vermelho-erro);
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-row-4 {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 2fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .form-row, .form-row-3, .form-row-4 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    button[type="submit"] {
+      background-color: var(--amarelo-acento);
+      color: var(--azul-principal);
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      padding: 16px 40px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+      margin-top: 20px;
+      width: 100%;
+      transition: all 0.3s;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #d4a903;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    button[type="submit"]:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .success-message {
+      background-color: #10b981;
+      color: var(--branco);
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    .helper-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .radio-option input[type="radio"] {
+      width: auto;
+      margin: 0;
+    }
+
+    .footer {
+      background: linear-gradient(135deg, var(--azul-principal) 0%, var(--azul-escuro) 100%);
+      color: var(--branco);
+      padding: 60px 30px 30px 30px;
+      margin-top: 80px;
+      position: relative;
+    }
+
+    .footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(135deg, var(--azul-secundaria) 0%, var(--amarelo-acento) 100%);
+    }
+
+    @media (max-width: 768px) {
+      main {
+        padding: 20px;
+        margin: 20px;
+      }
+
+      .header h1 {
+        font-size: 22px;
+      }
+    }
+  
+    .header {position:relative;}
+    .status-text {font-size:14px;color:#092040;min-height:20px;line-height:1.5}
+    .check-label {display:flex;align-items:flex-start;font-size:13px;line-height:1.5}
+    .hero-kicker {color:#ECC203;font-size:13px}
+    .helper-text {font-size:12px;}
+    #successMessage {display:none;}
+    #successMessage.show {display:block;}
+    input[readonly] {background:#EFF1F3;color:#374151;}
+    a {color:#007B92;}
+    @media (max-width:768px) {.header {padding:24px 16px;}main{margin:12px;padding:22px 16px;} }
+</style>
+<meta content="noindex, nofollow" name="robots"/><meta content="strict-origin-when-cross-origin" name="referrer"/></head>
+<body>
+<div class="header">
+<div class="logo-container">
+
+<div class="location-text">PROSPERA GOIÁS · PROSPERA RIO GRANDE DO SUL</div>
+</div>
+<h1>Diagnóstico Empresarial Simplificado</h1>
+<p>Formulário de diagnóstico para empreendedores atendidos em Goiás e no Rio Grande do Sul.</p>
+</div>
+<main>
+<div class="success-message" id="successMessage">✅ Registro confirmado na planilha. Anote o protocolo exibido abaixo.</div>
+<form id="formulario">
+<div class="form-section">
+<h2>Informações Básicas</h2><div class="form-group" id="grupo_projeto"><label for="projeto">Estado do negócio <span class="required">*</span></label><select id="projeto" name="projeto" required=""><option value="">Selecione o estado do atendimento</option><option value="GO">Prospera Goiás (GO)</option><option value="RS">Prospera Rio Grande do Sul (RS)</option></select><div class="helper-text">O registro será direcionado automaticamente à aba do estado escolhido.</div></div>
+<div class="form-row">
+<div class="form-group">
+<label>Horário de Início do Preenchimento<span class="required">*</span></label>
+<input id="inicio" name="inicio" required="" type="time"/>
+<div class="error-message" id="error-inicio">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Data do Preenchimento<span class="required">*</span></label>
+<input id="data" name="data" required="" type="date"/>
+<div class="error-message" id="error-data">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label for="consultor">Nome do Consultor (se houver)</label>
+<input id="consultor" name="consultor" type="text" placeholder="Deixe em branco se estiver respondendo sozinho(a)"/>
+<div class="helper-text">Este campo é opcional para o empreendedor.</div>
+</div>
+</div>
+<div class="form-group">
+<label>Nome do Negócio<span class="required">*</span></label>
+<input id="nome_negocio" name="nome_negocio" required="" type="text"/>
+<div class="error-message" id="error-nome_negocio">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Responsável pelo Negócio<span class="required">*</span></label>
+<input id="responsavel" name="responsavel" required="" type="text"/>
+<div class="error-message" id="error-responsavel">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>O negócio possui:<span class="required">*</span></label>
+<div class="radio-group">
+<div class="radio-option">
+<input id="tipo_cpf" name="tipo_documento" required="" type="radio" value="cpf"/>
+<label for="tipo_cpf" style="margin: 0;">CPF</label>
+</div>
+<div class="radio-option">
+<input id="tipo_cnpj" name="tipo_documento" required="" type="radio" value="cnpj"/>
+<label for="tipo_cnpj" style="margin: 0;">CNPJ</label>
+</div>
+</div>
+<div class="error-message" id="error-tipo_documento">Selecione CPF ou CNPJ</div>
+</div>
+<div class="form-row">
+<div class="form-group" id="grupo_cpf" style="display: none;">
+<label>CPF<span class="required">*</span></label>
+<input id="cpf" maxlength="14" name="cpf" type="text"/>
+<div class="error-message" id="error-cpf">CPF inválido</div>
+</div>
+<div class="form-group" id="grupo_cnpj" style="display: none;">
+<label>CNPJ<span class="required">*</span></label>
+<input id="cnpj" maxlength="18" name="cnpj" type="text"/>
+<div class="error-message" id="error-cnpj">CNPJ inválido</div>
+</div>
+<div class="form-group">
+<label>Data de Início das Atividades<span class="required">*</span></label>
+<input id="inicio_atividades" name="inicio_atividades" required="" type="date"/>
+<div class="error-message" id="error-inicio_atividades">Campo obrigatório</div>
+</div>
+</div>
+<div class="form-group">
+<label>Ramo de Atividade (o que você faz?)<span class="required">*</span></label>
+<input id="ramo" name="ramo" required="" type="text"/>
+<div class="error-message" id="error-ramo">Campo obrigatório</div>
+</div>
+<div class="form-row">
+
+<div class="form-group">
+<label>Quantas pessoas trabalham no negócio (incluindo você)?<span class="required">*</span></label>
+<input id="pessoas" min="1" name="pessoas" required="" type="number"/>
+<div class="error-message" id="error-pessoas">Mínimo 1 pessoa</div>
+</div>
+</div>
+<input id="localizacao" name="localizacao" type="hidden"/></div>
+<div class="form-section">
+<h2>Dados Pessoais do Responsável</h2>
+<div class="form-row">
+<div class="form-group">
+<label>Sexo<span class="required">*</span></label>
+<select id="sexo" name="sexo" required="">
+<option value="">Selecione</option>
+<option value="Masculino">Masculino</option>
+<option value="Feminino">Feminino</option>
+</select>
+<div class="error-message" id="error-sexo">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Data de Nascimento<span class="required">*</span></label>
+<input id="nascimento" name="nascimento" required="" type="date"/>
+<div class="error-message" id="error-nascimento">Campo obrigatório</div>
+<div class="helper-text">Formato: DD/MM/AAAA</div>
+</div>
+</div>
+<div class="form-group">
+<label>Ocupação<span class="required">*</span></label>
+<select id="ocupacao" name="ocupacao" required="">
+<option value="">Selecione</option>
+<option value="1000 - Não possui">1000 - Não possui</option>
+<option value="1001 - Negócio informal (sem CNPJ)">1001 - Negócio informal (sem CNPJ)</option>
+<option value="1002 - Atividade Rural">1002 - Atividade Rural</option>
+<option value="1003 - Ambulante">1003 - Ambulante</option>
+</select>
+<div class="error-message" id="error-ocupacao">Campo obrigatório</div>
+</div>
+</div>
+<div class="form-section">
+<h2>Endereço Completo</h2>
+<div class="form-row-3">
+<div class="form-group">
+<label>Tipo de Logradouro<span class="required">*</span></label>
+<select id="tipo_logradouro" name="tipo_logradouro" required="">
+<option value="">Selecione</option>
+<option value="Rua">Rua</option>
+<option value="Avenida">Avenida</option>
+<option value="Travessa">Travessa</option>
+<option value="Praça">Praça</option>
+</select>
+<div class="error-message" id="error-tipo_logradouro">Campo obrigatório</div>
+</div>
+<div class="form-group" style="grid-column: span 2;">
+<label>Logradouro<span class="required">*</span></label>
+<input id="logradouro" name="logradouro" required="" type="text"/>
+<div class="error-message" id="error-logradouro">Campo obrigatório</div>
+</div>
+</div>
+<div class="form-row-3">
+<div class="form-group">
+<label>Número<span class="required">*</span></label>
+<input id="numero" name="numero" required="" type="text"/>
+<div class="error-message" id="error-numero">Campo obrigatório</div>
+<div class="helper-text">Informe o número ou S/N, quando não houver.</div>
+</div>
+<div class="form-group" style="grid-column: span 2;">
+<label>Complemento</label>
+<input id="complemento" name="complemento" type="text"/>
+</div>
+</div>
+<div class="form-row-3">
+<div class="form-group">
+<label>Bairro<span class="required">*</span></label>
+<input autocomplete="address-level3" id="bairro" list="listaBairros" name="bairro" placeholder="Digite o bairro; o CEP pode preencher automaticamente" required="" type="text"></input><datalist id="listaBairros"></datalist>
+<div class="error-message" id="error-bairro">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Município<span class="required">*</span></label>
+<input autocomplete="address-level2" id="municipio" list="listaMunicipios" name="municipio" placeholder="Selecione ou digite o município" required="" type="text"/><datalist id="listaMunicipios"></datalist>
+<div class="error-message" id="error-municipio">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>UF<span class="required">*</span></label>
+<input id="uf" name="uf" placeholder="UF automática" readonly="" required="" type="text"/>
+<div class="error-message" id="error-uf">Campo obrigatório</div>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label>CEP<span class="required">*</span></label>
+<input id="cep" maxlength="9" name="cep" required="" type="text"/>
+<div class="error-message" id="error-cep">CEP inválido</div>
+</div>
+<div class="form-group">
+<label>Tipo de Endereço<span class="required">*</span></label>
+<select id="tipo_endereco" name="tipo_endereco" required="">
+<option value="">Selecione</option>
+<option value="P - Pessoal">P - Pessoal</option>
+<option value="C - Comercial">C - Comercial</option>
+</select>
+<div class="error-message" id="error-tipo_endereco">Campo obrigatório</div>
+</div>
+</div>
+</div>
+<div class="form-section">
+<h2>Contato</h2>
+<div class="form-row-4">
+<div class="form-group">
+<label>DDD<span class="required">*</span></label>
+<input id="ddd" maxlength="2" name="ddd" required="" type="text"/>
+<div class="error-message" id="error-ddd">Obrigatório</div>
+<div class="helper-text">Somente números</div>
+</div>
+<div class="form-group" style="grid-column: span 2;">
+<label>Telefone<span class="required">*</span></label>
+<input id="telefone" maxlength="9" name="telefone" required="" type="tel"/>
+<div class="error-message" id="error-telefone">Telefone inválido</div>
+<div class="helper-text">Somente números</div>
+</div>
+<div class="form-group">
+<label>Complemento</label>
+<input id="telefone_complemento" name="telefone_complemento" type="text"/>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label>Tipo de Telefone<span class="required">*</span></label>
+<select id="tipo_telefone" name="tipo_telefone" required="">
+<option value="">Selecione</option>
+<option value="R - Residencial">R - Residencial</option>
+<option value="C - Comercial">C - Comercial</option>
+<option value="M - Móvel">M - Móvel</option>
+<option value="F - Fax">F - Fax</option>
+</select>
+<div class="error-message" id="error-tipo_telefone">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>E-mail<span class="required">*</span></label>
+<input id="email" name="email" required="" type="email"/>
+<div class="error-message" id="error-email">E-mail inválido</div>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label>Tipo de E-mail<span class="required">*</span></label>
+<select id="tipo_email" name="tipo_email" required="">
+<option value="">Selecione</option>
+<option value="P - Pessoal">P - Pessoal</option>
+<option value="C - Comercial">C - Comercial</option>
+</select>
+<div class="error-message" id="error-tipo_email">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Rede Social (se possuir)</label>
+<input id="rede_social" name="rede_social" placeholder="@perfil ou Não possui" type="text"/>
+<div class="error-message" id="error-rede_social">Campo obrigatório</div>
+</div>
+</div>
+<div class="form-section">
+<h2>Motivação e Objetivos</h2>
+<div class="form-group">
+<label>Por que você decidiu abrir este negócio?<span class="required">*</span></label>
+<textarea id="motivo" name="motivo" required=""></textarea>
+<div class="error-message" id="error-motivo">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Você tem algum objetivo para o negócio?<span class="required">*</span></label>
+<textarea id="objetivo" name="objetivo" required=""></textarea>
+<div class="error-message" id="error-objetivo">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>O que você mais quer conquistar com o negócio nos próximos 12 meses?<span class="required">*</span></label>
+<textarea id="meta_12_meses" name="meta_12_meses" required=""></textarea>
+<div class="error-message" id="error-meta_12_meses">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Você já pensou ou escreveu algum plano para isso?<span class="required">*</span></label>
+<input id="plano" name="plano" required="" type="text"/>
+<div class="error-message" id="error-plano">Campo obrigatório</div>
+</div>
+</div>
+<div class="form-section">
+<h2>Gestão Financeira</h2>
+<div class="form-group">
+<label>Como você organiza o dinheiro que entra e sai do negócio?<span class="required">*</span></label>
+<textarea id="fluxo" name="fluxo" required=""></textarea>
+<div class="error-message" id="error-fluxo">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Você separa o dinheiro do negócio do dinheiro pessoal?<span class="required">*</span></label>
+<select id="separa" name="separa" required="">
+<option value="">Selecione uma opção</option>
+<option value="Sim">Sim</option>
+<option value="Não">Não</option>
+<option value="Às vezes">Às vezes</option>
+</select>
+<div class="error-message" id="error-separa">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Você sabe quanto ganhou no mês passado (lucro)?<span class="required">*</span></label>
+<input id="lucro" name="lucro" required="" type="text"/>
+<div class="error-message" id="error-lucro">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>O que mais te preocupa com relação ao dinheiro do negócio?<span class="required">*</span></label>
+<textarea id="preocupacao" name="preocupacao" required=""></textarea>
+<div class="error-message" id="error-preocupacao">Campo obrigatório</div>
+</div>
+</div>
+<div class="form-section">
+<h2>Recursos e Operação</h2>
+<div class="form-group">
+<label>Quem te ajuda no negócio? (família, amigos, contratados)<span class="required">*</span></label>
+<textarea id="ajuda" name="ajuda" required=""></textarea>
+<div class="error-message" id="error-ajuda">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Materiais (ex.: equipamentos, produtos)<span class="required">*</span></label>
+<textarea id="materiais" name="materiais" required=""></textarea>
+<div class="error-message" id="error-materiais">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Tecnologia (ex.: celular, internet, máquinas de pagamento)<span class="required">*</span></label>
+<textarea id="tecnologia" name="tecnologia" required=""></textarea>
+<div class="error-message" id="error-tecnologia">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Existe algo que dificulta o trabalho no dia a dia?<span class="required">*</span></label>
+<select id="dificuldade" name="dificuldade" required="">
+<option value="">Selecione uma opção</option>
+<option value="Sim">Sim</option>
+<option value="Não">Não</option>
+</select>
+<div class="error-message" id="error-dificuldade">Campo obrigatório</div>
+</div>
+<div class="form-group" id="grupo_dificuldade_2">
+<label>Se sim, o que?<span class="required">*</span></label>
+<textarea id="dificuldade_2" name="dificuldade_2"></textarea>
+<div class="error-message" id="error-dificuldade_2">Campo obrigatório</div>
+</div>
+</div>
+<div class="form-section">
+<h2>Marketing e Vendas</h2>
+<div class="form-group">
+<label>Como você faz para as pessoas conhecerem o seu negócio?<span class="required">*</span></label>
+<textarea id="divulgacao" name="divulgacao" required=""></textarea>
+<div class="error-message" id="error-divulgacao">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Onde você vende seus produtos ou serviços?<span class="required">*</span></label>
+<input id="venda" name="venda" required="" type="text"/>
+<div class="error-message" id="error-venda">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Você acompanha quanto vende?<span class="required">*</span></label>
+<select id="acompanha" name="acompanha" required="">
+<option value="">Selecione uma opção</option>
+<option value="Sim">Sim</option>
+<option value="Não">Não</option>
+<option value="Às vezes">Às vezes</option>
+</select>
+<div class="error-message" id="error-acompanha">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>O que você acha que poderia melhorar para atrair mais clientes?<span class="required">*</span></label>
+<textarea id="melhoria_clientes" name="melhoria_clientes" required=""></textarea>
+<div class="error-message" id="error-melhoria_clientes">Campo obrigatório</div>
+</div>
+</div>
+<div class="form-section">
+<h2>Equipe e Capacitação</h2>
+<div class="form-group">
+<label>Quem mais te ajuda no negócio e o que essas pessoas fazem?<span class="required">*</span></label>
+<textarea id="quem_ajuda" name="quem_ajuda" required=""></textarea>
+<div class="error-message" id="error-quem_ajuda">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Você ou as pessoas que te ajudam já fizeram algum curso ou treinamento?<span class="required">*</span></label>
+<select id="curso" name="curso" required="">
+<option value="">Selecione uma opção</option>
+<option value="Sim">Sim</option>
+<option value="Não">Não</option>
+</select>
+<div class="error-message" id="error-curso">Campo obrigatório</div>
+</div>
+<div class="form-group" id="grupo_curso_detalhe">
+<label>Se sim, qual?<span class="required">*</span></label>
+<input id="curso_detalhe" name="curso_detalhe" type="text"/>
+<div class="error-message" id="error-curso_detalhe">Campo obrigatório</div>
+</div>
+</div>
+<div class="form-section">
+<h2>Visão de Futuro</h2>
+<div class="form-group">
+<label>Se pudesse mudar uma coisa no seu negócio hoje, o que seria?<span class="required">*</span></label>
+<textarea id="mudanca" name="mudanca" required=""></textarea>
+<div class="error-message" id="error-mudanca">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>O que é mais difícil no seu negócio hoje?<span class="required">*</span></label>
+<textarea id="dificuldade_hoje" name="dificuldade_hoje" required=""></textarea>
+<div class="error-message" id="error-dificuldade_hoje">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>O que você gostaria de fazer no futuro para melhorar o negócio?<span class="required">*</span></label>
+<textarea id="futuro" name="futuro" required=""></textarea>
+<div class="error-message" id="error-futuro">Campo obrigatório</div>
+</div>
+<div class="form-group">
+<label>Como você descreveria o seu negócio em poucas palavras?<span class="required">*</span></label>
+<textarea id="descricao" name="descricao" required=""></textarea>
+<div class="error-message" id="error-descricao">Campo obrigatório</div>
+</div>
+</div>
+<div class="form-section">
+<h2>Finalização</h2>
+<div class="form-group">
+<label>Horário de Término do Preenchimento<span class="required">*</span></label>
+<input id="fim" name="fim" required="" type="time"/>
+<div class="error-message" id="error-fim">Campo obrigatório</div>
+</div>
+</div>
+<div class="form-section"><h2>Confirmação do empreendedor</h2>
+<div class="form-group"><p>As respostas serão registradas na planilha do programa estadual selecionado e utilizadas para análise do diagnóstico empresarial. Seus dados pessoais não devem ser publicados junto com o formulário.</p></div>
+<div class="form-group"><label class="check-label"><input id="confirmacao" required="" style="width:auto;margin-right:8px" type="checkbox"/>Confirmo que os dados fornecidos são verdadeiros e que li a finalidade informada acima.</label></div>
+<div class="form-group"><p aria-live="polite" class="status-text" id="statusEnvio" role="status"></p></div></div><button id="submitBtn" type="submit">Enviar Formulário</button>
+</div></form>
+</main>
+<footer class="footer">© 2026 • Diagnóstico Empresarial • Prospera Goiás e Prospera Rio Grande do Sul</footer>
+
+<script defer="True" src="app.js"></script></body>
+</html>
